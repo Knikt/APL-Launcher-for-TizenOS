@@ -1,0 +1,533 @@
+/* home-app.css - the Home app's own styles, lifted out of CleanFrame's
+   stylesheet so the app can open inside the launcher without the rest of the
+   stage coming with it. Selectors are unchanged (.home-app, .ha-*).
+
+   The launcher does not define CleanFrame's easing curves, so they are given
+   here: a variable that resolves to nothing reads as "no animation" on the
+   TV, which makes the app feel broken rather than quiet. */
+:root {
+    --ease-apple: cubic-bezier(.22, .61, .36, 1);
+    --ease-apple-out: cubic-bezier(.16, 1, .3, 1);
+    --ease-spring: cubic-bezier(.2, 1.35, .5, 1);
+}
+
+/* home-app.css - the Home app's own styles, lifted out of CleanFrame's
+   stylesheet so the app can open inside the launcher without the rest of
+   the   stage coming with it. Selectors are unchanged (.home-app, .ha-*). */
+
+/* In the launcher the Home app is a full-stage screen, not an element on a
+   stage that has its own wallpaper: it covers everything, dock included, and
+   keeps CleanFrame's photograph behind its own panels. */
+.home-app {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    background: #0b0d12;
+}
+
+.home-app .ha-backdrop {
+    background-image: var(--ha-photo, url("../assets/backdrops/home-app-photo.jpg"));
+    background-size: cover;
+    background-position: center;
+}
+
+
+
+
+
+.home-app {
+  position: absolute;
+  z-index: 60;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  color: #fff;
+  font-family: var(--ui-family, Manrope), Arial, sans-serif;
+  opacity: 0;
+  transform: scale(.90);
+  transition: opacity 260ms var(--ease-apple-out), transform 420ms var(--ease-apple);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.home-app[hidden] { display: none; }
+
+.home-app.is-open { opacity: 1; transform: none; pointer-events: auto; }
+
+
+.ha-backdrop {
+  position: absolute;
+  left: -6%; top: -6%;
+  width: 112%; height: 112%;
+  
+  background: var(--ha-photo, url("../assets/backdrops/home.svg")) center / cover no-repeat;
+  transform: scale(1.04);
+}
+
+.ha-veil {
+  position: absolute;
+  left: 0; top: 0; width: 100%; height: 100%;
+  background: linear-gradient(180deg, rgba(10,12,16,.30), rgba(10,12,16,.14) 42%, rgba(8,10,14,.44));
+}
+
+
+/* Every glyph in the app is white: the icon set is drawn with the SVG
+   defaults, which are a black fill on a dark background. */
+.home-app .ico, .home-app .ha-ico { color: #fff; fill: currentColor; }
+.home-app .ico [fill]:not([fill="none"]), .home-app .ha-ico [fill]:not([fill="none"]) { fill: currentColor; }
+.home-app .ico [stroke]:not([stroke="none"]), .home-app .ha-ico [stroke]:not([stroke="none"]) { stroke: currentColor; }
+.home-app .ha-chip .ico, .home-app .ha-tile.is-on .ico { color: #fff; }
+
+.ha-bar {
+  position: absolute;
+  left: 0; top: 0; right: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 32px;
+  font-size: 19px;
+  color: rgba(255,255,255,.92);
+  text-shadow: 0 1px 2px rgba(0,0,0,.25);
+}
+
+.ha-bar-time { font-weight: 600; }
+
+.ha-bar-day { color: rgba(255,255,255,.72); }
+
+.ha-bar-title { color: rgba(255,255,255,.86); }
+
+.ha-bar-tools { margin-left: auto; display: flex; gap: 14px; opacity: .8; }
+
+.ha-bar-tools .ha-ico { width: 22px; height: 22px; }
+
+.ha-bar-tools .ha-ico:last-child { width: 24px; height: 24px; }
+
+
+.ha-side {
+  position: relative;
+  z-index: 2;
+  margin: 76px 0 24px 24px;
+  padding: 16px 10px;
+  border-radius: 26px;
+  background: rgba(38, 36, 34, .26);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.09);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.ha-side::-webkit-scrollbar { width: 0; height: 0; }
+
+.ha-side-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 50px;
+  padding: 0 14px;
+  margin: 1px 0;
+  border-radius: 11px;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgba(255,255,255,.90);
+  transition: background 160ms linear, box-shadow 160ms linear;
+}
+
+.ha-side-row.is-active { background: rgba(255,255,255,.20); }
+
+.ha-side-row.is-focus {
+  background: rgba(255,255,255,.30);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.82);
+}
+
+.ha-side-mark { width: 22px; height: 22px; display: flex; }
+
+.ha-side-mark .ha-ico { width: 22px; height: 22px; opacity: .92; }
+
+.ha-side-head {
+  display: flex;
+  align-items: center;
+  margin: 18px 14px 6px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .2px;
+  color: rgba(255,255,255,.55);
+}
+
+.ha-side-head span { margin-left: auto; width: 16px; height: 16px; display: flex; }
+
+.ha-side-head .ha-ico { width: 16px; height: 16px; transform: rotate(90deg); opacity: .6; }
+
+
+.ha-main {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 84px 56px 32px 34px;
+  overflow: hidden;
+}
+
+.ha-title {
+  margin: 0 0 22px;
+  font-size: 52px;
+  line-height: 58px;
+  font-weight: 700;
+  letter-spacing: -1.4px;
+  text-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+
+
+.ha-chips { display: flex; gap: 16px; margin-bottom: 26px; }
+
+.ha-pill {
+  --acc: 150, 176, 200;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 62px;
+  padding: 0 20px 0 12px;
+  border-radius: 31px;
+  background: rgba(255,255,255,.20);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+}
+
+.ha-pill-mark {
+  width: 40px; height: 40px; border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(var(--acc), .92);
+  color: #fff;
+}
+
+.ha-pill-mark .ha-ico { width: 22px; height: 22px; }
+
+.ha-pill-copy { display: flex; flex-direction: column; line-height: 20px; }
+
+.ha-pill-copy span { font-size: 16px; font-weight: 600; color: rgba(255,255,255,.95); }
+
+.ha-pill-copy i { font-style: normal; font-size: 14px; color: rgba(255,255,255,.66); }
+
+
+.ha-sections { position: relative; flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 10px; }
+
+.ha-sections::-webkit-scrollbar { width: 0; height: 0; }
+
+.ha-section { margin-bottom: 22px; }
+
+.ha-section-head {
+  display: flex;
+  align-items: center;
+  margin: 0 0 12px;
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: -.6px;
+}
+
+.ha-section-head span { margin-left: 12px; width: 22px; height: 22px; display: flex; opacity: .55; }
+
+.ha-section-head .ha-ico { width: 22px; height: 22px; }
+
+.ha-row-tiles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-rows: 108px;
+  gap: 16px;
+}
+
+
+.ha-tile {
+  --acc: 150, 176, 200;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.17);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.10);
+  color: #fff;
+  
+  transition: transform 320ms var(--ease-spring), background-color 220ms var(--ease-apple-out),
+    box-shadow 260ms var(--ease-apple-out), color 220ms var(--ease-apple-out);
+}
+
+.ha-tile.is-wide { grid-column: span 2; gap: 16px; }
+
+.ha-tile.is-wide .ha-tile-state { font-size: 19px; line-height: 24px; font-weight: 600; color: #fff; }
+
+.ha-tile.is-wide.is-on .ha-tile-state { color: #14161a; }
+
+.ha-tile.acc-climate { --acc: 62, 148, 255; }
+
+.ha-tile.acc-fan { --acc: 48, 198, 178; }
+
+.ha-tile.acc-light { --acc: 242, 179, 61; }
+
+.ha-tile.acc-media { --acc: 168, 132, 255; }
+
+.ha-tile.acc-scene { --acc: 255, 145, 92; }
+
+.ha-tile.acc-switch { --acc: 138, 176, 200; }
+
+.ha-tile.is-on {
+  background: rgba(250, 248, 242, .95);
+  color: #14161a;
+  box-shadow: 0 12px 30px rgba(0,0,0,.16);
+}
+
+.ha-tile.is-away { opacity: .5; }
+
+
+.ha-tile.is-focus {
+  z-index: 3;
+  box-shadow: inset 0 0 0 3px #fff, 0 0 0 3px rgba(255,255,255,.24), 0 10px 26px rgba(0,0,0,.28);
+}
+
+
+.ha-chip {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.18);
+  color: rgb(var(--acc));
+  flex: none;
+}
+
+.ha-chip .ha-ico { width: 21px; height: 21px; }
+
+.ha-tile.is-on .ha-chip { background: rgba(var(--acc), .16); }
+
+.ha-chip.is-large { width: 60px; height: 60px; border-radius: 17px; background: rgba(255,255,255,.14); color: rgb(var(--acc)); }
+
+
+.ha-tile-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+.ha-tile-name {
+  font-size: 17px; line-height: 22px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.ha-tile-state { font-size: 14px; line-height: 19px; color: rgba(255,255,255,.72); }
+
+.ha-tile.is-on .ha-tile-state { color: rgba(20,22,26,.62); }
+
+.ha-tile-note { font-size: 15px; color: rgba(255,255,255,.6); }
+
+.ha-tile.is-on .ha-tile-note { color: rgba(20,22,26,.55); }
+
+.ha-hint {
+  margin: 10px 0 0;
+  font-size: 16px;
+  color: rgba(255,255,255,.62);
+  text-shadow: 0 1px 2px rgba(0,0,0,.3);
+}
+
+.ha-empty { grid-column: 1 / -1; font-size: 22px; color: rgba(255,255,255,.6); }
+
+
+.ha-sheet {
+  position: absolute;
+  right: 56px; bottom: 48px;
+  z-index: 5;
+  width: 780px;
+  border-radius: 28px;
+  padding-bottom: 12px;
+  background: rgba(24, 26, 30, .92);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.13), 0 24px 70px rgba(0,0,0,.5);
+}
+
+.ha-sheet[hidden] { display: none; }
+
+.ha-sheet-head { display: flex; align-items: center; gap: 18px; padding: 22px 26px 8px; }
+
+.ha-sheet-copy h2 { margin: 0; font-size: 29px; line-height: 34px; font-weight: 700; letter-spacing: -.5px; }
+
+.ha-sheet-copy p { margin: 2px 0 0; font-size: 18px; line-height: 23px; color: rgba(255,255,255,.62); }
+
+.ha-sheet-hint { margin-left: auto; font-size: 15px; color: rgba(255,255,255,.4); }
+
+.ha-sheet-rows { display: flex; flex-direction: column; gap: 5px; padding: 8px 16px 4px; }
+
+.ha-row {
+  display: flex; align-items: center; gap: 10px;
+  height: 52px; padding: 0 15px; border-radius: 13px;
+  font-size: 20px; line-height: 25px;
+  background: rgba(255,255,255,.055);
+}
+
+.ha-row.is-info { background: none; color: rgba(255,255,255,.55); }
+
+.ha-row.is-focus { background: rgba(255,255,255,.15); box-shadow: inset 0 0 0 2px rgba(255,255,255,.8); }
+
+.ha-row-name { color: rgba(255,255,255,.88); }
+
+.ha-row-value { margin-left: auto; color: rgba(255,255,255,.74); }
+
+.ha-step { font-size: 23px; color: rgba(255,255,255,.42); }
+
+
+
+.ctrl-tile,
+.home-tile,
+.ha-tile,
+.tvos-row,
+.setting-choice,
+.plate,
+.search-key,
+.search-scope,
+.search-tile {
+  transition: transform 340ms var(--ease-apple), box-shadow 260ms var(--ease-apple-out),
+    background-color 180ms linear, color 180ms linear, opacity 200ms linear;
+}
+
+.ctrl-tile.is-focus,
+.home-tile.is-focus,
+.ha-tile.is-focus {
+  transition: transform 340ms var(--ease-apple), box-shadow 260ms var(--ease-apple-out),
+    background-color 180ms linear;
+}
+
+
+
+
+.ctrl-glass::after,
+.pill-glass::after,
+.ha-tile::after,
+.tile::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 3;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.46),
+    inset 1.5px 0 0 rgba(255, 255, 255, 0.17),
+    inset -1.5px 0 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.26),
+    inset 0 12px 18px -13px rgba(255, 255, 255, 0.55),
+    inset 0 -14px 20px -15px rgba(0, 0, 0, 0.42);
+}
+
+
+
+
+.ctrl-tile,
+.home-tile,
+.ha-tile {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+/* Last word: the Home app owns the whole stage inside the launcher. */
+body .home-app {
+    position: fixed;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+}
+
+/* This package carries no photograph of its own: without one from the private
+   keys the app draws on its own dark plate, and nothing is requested for a
+   backdrop that is not here. */
+.home-app .ha-backdrop { background-image: var(--ha-photo, none); background-color: #0b0d12; }
+
+/* Round icon plates. The chip is the accessory's badge: a circle, like the status
+   capsules beside it, so a lamp or a speaker reads as a glyph rather than a
+   small rectangle with a picture in it. */
+.home-app .ha-chip, .home-app .ha-chip.is-large { border-radius: 50%; }
+
+/* ---------- Connect ----------
+   The screen a new installation lands on: wide rows, one focus ring, and the
+   note underneath does the explaining so no manual is needed beside the TV. */
+.home-app.is-setup .ha-side,
+.home-app.is-setup .ha-main,
+.home-app.is-setup .ha-sheet { display: none; }
+
+.ha-setup {
+  position: absolute;
+  z-index: 8;
+  left: 140px;
+  top: 132px;
+  width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ha-setup[hidden] { display: none; }
+
+.ha-setup-title {
+  margin: 0 0 4px;
+  font-size: 52px;
+  line-height: 58px;
+  font-weight: 700;
+  letter-spacing: -1.3px;
+}
+
+.ha-setup-lead {
+  margin: 0 0 10px;
+  max-width: 760px;
+  font-size: 20px;
+  line-height: 28px;
+  color: rgba(255,255,255,.72);
+}
+
+.ha-field {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 72px;
+  padding: 0 22px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.10);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.10);
+}
+
+.ha-field.is-focus {
+  background: rgba(255,255,255,.17);
+  box-shadow: inset 0 0 0 3px #fff;
+}
+
+.ha-field[hidden] { display: none; }
+
+.ha-field-name {
+  width: 148px;
+  flex: none;
+  font-size: 18px;
+  color: rgba(255,255,255,.70);
+}
+
+.ha-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 22px;
+}
+
+.ha-field input::placeholder { color: rgba(255,255,255,.34); }
+
+.ha-field.is-action .ha-field-value { margin-left: auto; font-size: 21px; font-weight: 600; }
+
+.ha-field.is-alt .ha-field-value { margin-left: auto; font-size: 18px; color: rgba(255,255,255,.66); }
+
+.ha-note {
+  min-height: 24px;
+  margin-top: 6px;
+  font-size: 17px;
+  line-height: 24px;
+  color: rgba(255,255,255,.58);
+}
+
+.ha-note.is-bad { color: #ffb2a4; }

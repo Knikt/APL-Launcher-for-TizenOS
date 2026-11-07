@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=1920, height=1080, user-scalable=no">
     <title>APL Launcher</title>
     <link id="apl-css" rel="stylesheet" href="css/launcher.css">
+    <!-- The Home app's own screen (js/home-app.js) -->
+    <link id="home-app-css" rel="stylesheet" href="css/home-app.css">
 </head>
 <body class="mode-shelf">
     <!-- Top Shelf: full-frame artwork of the selected app (2 layers for the fade) -->
@@ -37,6 +39,10 @@
         <div class="dock"><div id="row0" class="row0"></div></div>
         <div id="rows" class="rows"></div>
     </main>
+
+    <!-- CleanFrame Home: the house as an app, drawn by js/home-app.js.
+         Hidden until the Home tile opens it. -->
+    <div id="homeApp" class="home-app" hidden></div>
 
     <div id="toast" class="toast" aria-live="polite"></div>
     <div id="boot" class="boot"></div>

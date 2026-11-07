@@ -241,6 +241,8 @@
                     APL.toast(APL.t("Searching for artwork in the background…"), true);
                 }, APL.t("Clears the artwork found and searches again for all apps."), "reset"),
                 info(APL.t("Installed Apps"), function () { return String(apps.length); }),
+                info(APL.t("Home Assistant"), function () { return APL.ha && APL.ha.available() ? APL.t("Configured") : APL.t("Missing"); },
+                    APL.t("Adds a Home tile that opens your Home Assistant dashboard in Internet. Set its address in APL Launcher Setup, on the PC: without one, there is no tile.")),
                 toggle(APL.t("Close Unused Apps"), "idleClose",
                     APL.t("An app left in the background for more than 10 minutes closes on its own, TizenTube included: the screen keeps its memory and stays smooth. The app in front is never closed, nor are the Home Screen, the TV inputs and AirPlay.")),
                 action(APL.t("Free Up Memory"), function () { APL.freeMemory(); },

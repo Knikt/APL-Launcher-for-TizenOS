@@ -709,12 +709,22 @@
     function asset(p) { return global.APL_ASSET ? global.APL_ASSET(p) : p; }
 
     /* Apps built into the launcher, like Settings on Apple TV. */
+    /* The Home app's mark: the Home Assistant logo as a vector, so the tile
+       needs no new raster. Only the mark changes; the app is the same app. */
+    var HA_MARK = '<svg class="vtile__ha" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.939 10.627 13.061.749a1.505 1.505 0 0 0-2.121 0l-9.879 9.878C.478 11.21 0 12.363 0 13.187v9c0 .826.675 1.5 1.5 1.5h9.227l-4.063-4.062a2.034 2.034 0 0 1-.664.113c-1.13 0-2.05-.92-2.05-2.05s.92-2.05 2.05-2.05 2.05.92 2.05 2.05c0 .233-.041.456-.113.665l3.163 3.163V9.928a2.05 2.05 0 0 1-1.15-1.84c0-1.13.92-2.05 2.05-2.05s2.05.92 2.05 2.05a2.05 2.05 0 0 1-1.15 1.84v8.127l3.146-3.146A2.051 2.051 0 0 1 18 12.239c1.13 0 2.05.92 2.05 2.05s-.92 2.05-2.05 2.05c-.25 0-.488-.047-.709-.13L12.9 20.602v3.088h9.6c.825 0 1.5-.675 1.5-1.5v-9c0-.825-.477-1.977-1.061-2.561z"/></svg>';
+
     function virtualApps() {
         return [
             // TizenTube: its own tile, without going through TizenBrew's screen
             { id: "apl.tizentube", name: "TizenTube", virtual: true, needs: "xvvl3S1bvH.TizenBrewStandalone", accent: "#1fb6e6", eyebrow: "VIDÉO",
               tile: APL.TIZENTUBE_ART.tile, live: "youtube",
               run: function () { showVeil(); launchTube(null); } },
+            // Home Assistant's dashboard, on the TV (homeassistant.js). Its address is a
+            // private one, kept in js/keys.local.js: without it, the tile is not there at all.
+            { id: "apl.homeassistant", name: APL.ha ? APL.ha.name() : "Home", virtual: true, accent: "#f5a623", eyebrow: "HOME",
+              tileHtml: '<div class="vtile vtile--ha-mark">' + HA_MARK + '</div>',
+              when: function () { return !!(APL.ha && APL.ha.available()); },
+              run: function () { APL.ha.open(); } },
             // Apple's Settings icon (images/apps/settings-*, made by tools/art)
             { id: "apl.settings", name: APL.t("Settings"), virtual: true, accent: "#8e8e93", eyebrow: "SYSTÈME",
               tile: asset("images/apps/settings-tile.png"),
@@ -787,7 +797,10 @@
             return rank(a) - rank(b) || a.name.localeCompare(b.name, APL.locale, { sensitivity: "base" });
         });
         virtuals = virtuals || virtualApps();
-        var usable = virtuals.filter(function (v) { return !v.needs || list.some(function (a) { return a.id === v.needs; }); })
+        // needs: the app it goes through. when: set up on this installation only.
+        var usable = virtuals.filter(function (v) {
+            return (!v.needs || list.some(function (a) { return a.id === v.needs; })) && (!v.when || v.when());
+        })
             .concat(APL.sources ? APL.sources.homeTiles() : []);              // inputs pinned to the Home Screen
         var tube = usable.filter(function (v) { return v.id === "apl.tizentube"; });
         defaultOrder = tube.concat(favs, usable.filter(function (v) { return tube.indexOf(v) === -1; }), rest, APL.folders.all().map(APL.folders.asApp));

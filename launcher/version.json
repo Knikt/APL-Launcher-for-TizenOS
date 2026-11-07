@@ -33,6 +33,7 @@
   "js/widgets.js",
   "js/overlay.js",
   "js/updater.js",
+  "js/homeassistant.js",
   "js/launcher.js",
   "js/preview.js"
  ],
@@ -59,6 +60,7 @@
   "images/apps/franime-tile.png",
   "images/apps/geforcenow-tile.png",
   "images/apps/hbomax-tile.png",
+  "images/apps/homekit-tile.png",
   "images/apps/jellyfin-tile.png",
   "images/apps/jiohotstar-tile.png",
   "images/apps/kodi-tile.png",

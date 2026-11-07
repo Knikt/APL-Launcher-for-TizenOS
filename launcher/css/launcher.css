@@ -324,6 +324,10 @@ html, body {
 .vtile--settings { background: linear-gradient(180deg, #e4e4e9 0%, #a3a3ab 100%); color: #3a3a3f; }
 .vtile--sources  { background: linear-gradient(180deg, #3d7bf0 0%, #1d47b5 100%); color: #fff; }
 .vtile--samsunghome { background: linear-gradient(180deg, #2a4fd6 0%, #1428a0 100%); color: #fff; }
+/* The Home app: its own white plate, with the Home Assistant mark in the
+   brand's blue. Only the logo differs from the HomeKit tile. */
+.vtile--ha-mark { background: #fff; color: #18bcf2; }
+.vtile--ha-mark .vtile__ha { width: 46px; height: 46px; display: block; fill: currentColor; }
 
 /* ===================== SETTINGS (tvOS split view) ===================== */
 .settings {
