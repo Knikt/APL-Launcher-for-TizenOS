@@ -11,6 +11,7 @@
   "js/system.js",
   "js/keys.local.js",
   "js/liveshelf.js",
+  "js/app-art.js",
   "js/icons.js",
   "js/apps.js",
   "js/autoart.js",
@@ -34,10 +35,12 @@
   "js/overlay.js",
   "js/updater.js",
   "js/launcher.js",
+  "js/glass.js",
   "js/preview.js"
  ],
  "styles": [
-  "css/launcher.css"
+  "css/launcher.css",
+  "css/glass.css"
  ],
  "body": "<!-- Top Shelf: full-frame artwork of the selected app (2 layers for the fade) -->\n    <div id=\"bgA\" class=\"bg\"></div>\n    <div id=\"bgB\" class=\"bg\"></div>\n    <!-- Blurred grid background: a small pre-blurred image, nothing computed live -->\n    <div id=\"bgBlur\" class=\"bgblur\"></div>\n    <div class=\"scrim\"></div>\n\n    <!-- Status pill (top right): time + avatar -->\n    <div class=\"status\">\n        <span id=\"clock\" class=\"status__clock\">09:41</span>\n        <span class=\"status__avatar\" aria-hidden=\"true\"></span>\n    </div>\n\n    <!-- The Top Shelf film or series: title and rating -->\n    <div id=\"shelfInfo\" class=\"shelfinfo\">\n        <div id=\"shelfTitle\" class=\"shelfinfo__title\"></div>\n        <div id=\"shelfMeta\" class=\"shelfinfo__meta\"></div>\n    </div>\n\n    <!-- \"Press ▲ for full screen\" (launcher.js puts in the translated text) -->\n    <div id=\"hint\" class=\"hint\">\n        <span class=\"hint__chevron\" aria-hidden=\"true\"></span>\n        <span class=\"hint__text\">Press ▲ for full screen</span>\n    </div>\n\n    <!-- Home Screen: dock (top row) + the rows below -->\n    <main id=\"home\" class=\"home\">\n        <div class=\"dock\"><div id=\"row0\" class=\"row0\"></div></div>\n        <div id=\"rows\" class=\"rows\"></div>\n    </main>\n\n    <div id=\"toast\" class=\"toast\" aria-live=\"polite\"></div>\n    <div id=\"boot\" class=\"boot\"></div>",
  "images": [

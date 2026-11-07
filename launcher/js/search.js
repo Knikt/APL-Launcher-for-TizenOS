@@ -4,9 +4,8 @@
    A row of letters at the top, the matching apps below, updated at every
    letter. OK on a letter types it, OK on an app opens it. The remote's
    digits and a keyboard (PC preview) type too. Opened with ▲ from the full
-   screen Top Shelf (▲ from the dock, then ▲ again). A magnifier at the top
-   left of the Home Screen, across from the status pill, shows it's up there;
-   in full screen it reads "▲ Search". Apps only for now: those in folders too, and the hidden ones
+   screen Top Shelf (▲ from the dock, then ▲ again), or from the Control
+   Center. Apps only for now: those in folders too, and the hidden ones
    with Settings › Home Screen › Search Hidden Apps.
    ============================================================ */
 (function (global) {
@@ -132,14 +131,8 @@
         isOpen = false;
     }
 
-    /* The magnifier at the top left (launcher.css): "▲ Search" in full screen, where ▲ opens it (launcher.js). */
-    function addHint() {
-        var h = el("div", "search-hint");
-        h.innerHTML = '<span class="search-hint__chevron"></span>' + APL.icon("search", 30, 2.4);
-        h.appendChild(el("span", "search-hint__text", APL.t("Search")));
-        document.body.appendChild(h);
-    }
-    if (document.body) addHint(); else document.addEventListener("DOMContentLoaded", addHint);
+    /* No magnifier on the Home Screen: Search opens from the Control Center, and
+       with ▲ in full screen (launcher.js). */
 
     APL.search = { open: open, close: close, isOpen: function () { return isOpen; } };
 })(window);

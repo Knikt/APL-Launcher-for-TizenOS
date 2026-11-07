@@ -58,6 +58,16 @@ html, body {
 }
 .bg.is-active { opacity: 1; }
 .bg.is-instant { transition: none; }                 /* shown at once under the one fading out (launcher.js) */
+/* A backdrop change slides in as it fades, so a new app, the next title or a
+   step along the row all read as one movement. */
+.bg.is-slide { animation: bgSlide var(--glass-ms, 460ms) var(--glass-ease, ease) both; }
+@keyframes bgSlide {
+    /* A move of the picture itself, not of its box: the glass slices the same
+       geometry, so it can make the same move and stay lined up. */
+    from { opacity: 0; background-position: calc(50% + 40px) 50%; }
+    to   { opacity: 1; background-position: 50% 50%; }
+}
+.mode-grid .bg.is-slide, .perf .bg.is-slide, .reduce-motion .bg.is-slide { animation: none; }
 
 /* Generated brand card for apps with no artwork (Tizen icon + name) */
 .brandcard {
@@ -501,7 +511,7 @@ html, body {
     box-shadow: inset 0 0 0 2px rgba(255,255,255,0.22);
 }
 .cc__viewport { max-height: 920px; overflow: hidden; padding: 12px 24px 24px; margin: -12px -24px 0; }   /* 24 px: room for an enlarged row (1.06 × 600 px) */
-.cc__body { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; transition: transform 260ms var(--ease); }
+.cc__body { display: grid; grid-template-columns: repeat(2, 200px); justify-content: center; gap: 18px; transition: transform 260ms var(--ease); }
 .cc__body--audio, .cc__body--pair, .cc__body--airplay { grid-template-columns: 1fr; gap: 12px; }
 
 /* glass: translucent, light edge (perf: opaque, no blur) */
@@ -518,20 +528,22 @@ html, body {
 }
 .cc__t--big {
     grid-row: span 2;
-    height: 252px;
-    border-radius: 58px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50px;
     flex-direction: column;
     justify-content: center;
     gap: 16px;
 }
 .cc__t--big .cc__title { font-size: 26px; }
-.cc__t--pill { height: 118px; border-radius: 59px; gap: 14px; padding: 0 22px 0 20px; min-width: 0; }
+.cc__t--pill { height: 96px; border-radius: 48px; gap: 14px; padding: 0 22px 0 20px; min-width: 0; }
+.cc__t--wide { grid-column: span 2; height: 96px; border-radius: 48px; gap: 14px; padding: 0 22px 0 20px; }   /* Screensaver, Settings */
 .cc__t--pill .cc__ico { width: 56px; height: 56px; }
 .cc__t--pill .cc__title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 24px; }
-.cc__rounds { grid-column: span 2; display: flex; justify-content: space-between; padding: 0 4px; }
-.cc__t--round { width: 112px; height: 112px; border-radius: 50%; justify-content: center; }
-.cc__caption { grid-column: span 2; height: 26px; margin-top: -6px; text-align: center; font-size: 22px; font-weight: 500; color: rgba(255,255,255,0.75); }
-.cc__t--slider { grid-column: span 2; height: 104px; border-radius: 52px; gap: 20px; padding: 0 30px 0 28px; }
+.cc__rounds { grid-column: span 2; display: flex; justify-content: center; align-items: center; gap: 18px; height: 100px; padding: 0; }
+.cc__t--round { width: 95px; height: 96px; border-radius: 50%; justify-content: center; }
+.cc__caption { display: none; grid-column: span 2; height: 26px; margin-top: -6px; text-align: center; font-size: 22px; font-weight: 500; color: rgba(255,255,255,0.75); }
+.cc__t--slider { grid-column: span 2; height: 96px; border-radius: 48px; gap: 20px; padding: 0 30px 0 28px; }
 .cc__t--row { min-height: 104px; border-radius: 52px; gap: 18px; padding: 14px 30px 14px 22px; }
 .cc__ico {
     flex: none;
@@ -857,15 +869,7 @@ html, body {
 .search__results .tile__label { opacity: 1; }
 .search__empty { position: absolute; top: 330px; left: 90px; font-size: 26px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
 .has-search .shelfinfo, .has-search .home, .has-search .status, .has-search .hint { opacity: 0; }
-/* Search's hint, top left across from the status pill: a magnifier on the Home Screen, "▲ Search" in full screen */
-.search-hint { position: fixed; top: 50px; left: 42px; z-index: 9; height: 60px; padding: 0 18px; display: flex; align-items: center; gap: 10px; border-radius: 30px;
-    background: rgba(26, 28, 36, 0.68); color: rgba(255, 255, 255, 0.9); font-size: 24px; font-weight: 600; transition: opacity 400ms ease; pointer-events: none; }
-.search-hint__chevron, .search-hint__text { display: none; }
-.search-hint__chevron { width: 13px; height: 13px; margin: 6px 2px 0 4px; border-left: 3px solid currentColor; border-top: 3px solid currentColor; border-radius: 2px; transform: rotate(45deg); }
-.mode-full .search-hint__chevron, .mode-full .search-hint__text { display: block; }
-.mode-grid .search-hint, .has-wdg .search-hint, .has-cc .search-hint, .has-sources .search-hint, .has-search .search-hint,
-.has-settings .search-hint, .has-profiles .search-hint { opacity: 0; }
-.theme-light .search-hint { background: rgba(236, 238, 244, 0.7); color: #1c1c1e; }
+/* Search's magnifier is in the Control Center now (controlcenter.js): nothing at the top left. */
 .scard.is-focused .scard__art { transform: scale(1.1); box-shadow: 0 34px 60px rgba(0,0,0,0.55); }
 .scard.is-focused .scard__art--glass { background: #f5f5f7; color: #1c1c1e; }
 .scard.is-focused .scard__art--glass .scard__ico { background: rgba(0,0,0,0.07); }

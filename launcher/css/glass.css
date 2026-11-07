@@ -1,0 +1,97 @@
+/* ============================================================
+   glass.css — Liquid Glass, blurred once.
+
+   The dock, the status pill and the Control Center tiles used
+   backdrop-filter. On a Tizen set that is the most expensive thing
+   on screen: the blur is re-run every time a tile scales on focus
+   or a panel slides in. glass.js bakes the backdrop once per
+   picture into a small canvas (960x540, blur 18 px) and lays that
+   frozen copy under each surface, sliced with background-position
+   so the picture looks continuous through the glass. Moving focus,
+   opening a panel or changing the artwork then only changes
+   background-position: nothing filters, nothing is drawn per frame.
+
+   The sheen is 5 %: enough to read as a lit pane, low enough to
+   keep the artwork's colours. Everything is behind body.glass, so
+   turning Liquid Glass off in Settings brings the plain translucent
+   fills straight back.
+   ============================================================ */
+
+/* One timing for the picture and for the glass over it: the same length and
+   the same curve, so a change reads as one movement and never throbs. */
+:root {
+    --glass-ms: 460ms;
+    --glass-ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+/* The surface itself stops filtering: the pane below it is already soft. */
+body.glass .dock,
+body.glass .status,
+body.glass .cc__t,
+body.glass .scard__art--glass {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+/* One pane per surface, laid over the surface's own fill and under its text. */
+.cg__glass {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    background-color: transparent;       /* nothing grey while a picture is on its way */
+    background-repeat: no-repeat;
+    background-size: 1920px 1080px;      /* the stage: a slice of the picture, never a stretch */
+    background-position: var(--gx, 0px) var(--gy, 0px);
+    transition: none;                    /* a window onto the picture: it never animates itself */
+}
+.cg__glass.is-on { opacity: 1; }
+
+/* Nothing moves the picture while the glass is on. The slow pan of the artwork
+   and the slide of a new one both drag it under panes that are fixed to the
+   stage, and that drift is the shimmer the dock and the pill were showing: with
+   the glass on, a backdrop change is a plain crossfade (launcher.css). */
+body.glass .bg.is-motion,
+body.glass .bg.is-slide { animation: none; }
+
+/* A hairline of light along the top edge: the reflection of a lit room. */
+.cg__glass::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 6%;
+    right: 6%;
+    height: 1px;
+    border-radius: 1px;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.42) 18%, rgba(255, 255, 255, 0.42) 82%, rgba(255, 255, 255, 0));
+}
+
+/* 5 % of white, lit from the top edge: the glass, not the picture. */
+.cg__glass::after {
+    content: "";
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02) 46%, rgba(255, 255, 255, 0.01) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* The surface's own content stays above the pane: the clock, the app names,
+   the Control Center's labels. Without this the pane is an opaque slice over
+   its own text, which is a black hole where the time should be. */
+body.glass .status__clock { position: relative; z-index: 2; }
+body.glass .dock > .row0,
+body.glass .status > :not(.cg__glass),
+body.glass .cc__t > :not(.cg__glass),
+body.glass .scard__art--glass > :not(.cg__glass) { position: relative; z-index: 1; }
+
+/* The focused tile is a solid plate, as on Apple TV: the pane steps aside so
+   the white card stays white. */
+body.glass .cc__t.is-focused { background: #f5f5f7; }
+body.glass .cc__t.is-focused .cg__glass { opacity: 0; }
+
+/* The screen's light mode (launcher.js applyPerf): no lens at all. */
+body.perf .cg__glass { display: none; }

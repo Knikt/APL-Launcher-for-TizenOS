@@ -315,7 +315,9 @@
             { cls: "pill", icon: "photo", title: APL.t("Screensaver"), sub: function () { return APL.t("Start"); },
               select: function () { close(); if (APL.screensaver) APL.screensaver.start(); } },
             { cls: "pill", icon: "gear", title: APL.t("Settings"), sub: function () { return APL.t("All settings"); },
-              select: openSettings() }
+              select: openSettings() },
+            { cls: "round", icon: "search", title: APL.t("Search"), start: true,
+              select: function () { close(); if (APL.search) APL.search.open(); } }
         ];
     }
 
@@ -445,6 +447,7 @@
             draw(it, t);
             if (it.cls === "round") {
                 if (!rounds) { rounds = el("div", "cc__rounds"); body.appendChild(rounds); }
+                if (it.start) rounds.style.justifyContent = "flex-start";      // Search sits at the left edge
                 rounds.appendChild(t);
             } else {
                 if (rounds && it.cls !== "round") { body.appendChild(captionEl = el("div", "cc__caption")); rounds = null; }

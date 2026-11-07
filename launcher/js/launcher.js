@@ -83,6 +83,25 @@
                "#07080c";
     }
 
+    /* ---------- dynamic backdrops (app-art.js) ---------- */
+    /* The title a service is showing right now: the storefront's trending list for the
+       screen's country (JustWatch, no key needed), one poster per app. Settings ›
+       Appearance › Dynamic Backdrops turns it off, and every app gets its artwork back. */
+    function backdropPick(app) {
+        if (!APL.appArt || !APL.appArt.pick) return null;
+        if (APL.sys.pref("cleanFrameBackdrops") === false) return null;
+        try { return APL.appArt.pick(app); } catch (e) { return null; }
+    }
+
+    /* Title and year under the poster, where the Top Shelf puts its own. */
+    function posterInfo(pick) {
+        if (!pick || !pick.title) { shelfInfo(null); return; }
+        var meta = [];
+        if (pick.year) meta.push(String(pick.year));
+        if (pick.kind) meta.push(pick.kind);
+        shelfInfo({ poster: true, title: pick.title, meta: meta.join(" · ") });
+    }
+
     /* Logo + name in the centre, like the provided artwork (sharp Tizen icon, never blurred). */
     function brandCard(app) {
         var card = document.createElement("div");
@@ -132,7 +151,13 @@
             return;
         }
         var img = new Image();
-        img.onload = function () {
+        /* onload is not the whole bitmap. Drawing then left the blurred backdrop
+           half filled, and the Control Center sometimes showed that banded blur
+           of the app's backdrop instead of the picture. */
+        var painted = false;
+        function paintBlur() {
+            if (painted) return;
+            painted = true;
             if (token !== blurToken) return;              // another image was requested in the meantime
             var c = blurLayer(), ctx = c.getContext("2d"), w = c.width, h = c.height;
             var m = c._filters ? 14 : 0;                  // margin: no dark edge from the blur
@@ -144,6 +169,11 @@
             ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
             c.style.opacity = "1";
             dom.bgBlur.style.background = "#05060a";
+        }
+        img.onload = function () {
+            if (img.decode) img.decode().then(paintBlur, paintBlur);
+            else paintBlur();
+            global.setTimeout(paintBlur, 400);            // a decode that never settles
         };
         img.onerror = function () { if (token === blurToken) dom.bgBlur.style.background = backdropFor(app); };
         img.src = src;
@@ -225,9 +255,25 @@
     var FADE_MS = 300;
     function fadeTo(next) {
         var old = bgActive;
+        /* The new picture slides in as it fades, whichever way round the two
+           layers stack, so a change never pops - not for a new app, not for the
+           next title after ten seconds, not while stepping through the row. */
+        if (!next.classList.contains("is-motion")) {
+            next.classList.remove("is-slide");
+            void next.offsetWidth;                                  // restart the animation
+            next.classList.add("is-slide");
+            global.setTimeout(function () { next.classList.remove("is-slide"); }, 500);
+        }
         clearTimeout(next._out);
         clearTimeout(old._out);
         bgActive = next;
+        /* The element itself, not only its id: several layers can carry the
+           same app, and the glass has to slice the one that was faded in. */
+        document.body.__bgLive = next;
+        /* Name the app whose backdrop is live. Two layers keep is-active while
+           they cross over, so "the first active layer" can still be the one
+           leaving, and the glass would slice the show before last. */
+        if (next.dataset && next.dataset.app) document.body.setAttribute("data-bg-app", next.dataset.app);
         if (old.compareDocumentPosition(next) & global.Node.DOCUMENT_POSITION_FOLLOWING) {
             next.classList.add("is-active");                     // above: fades in over the old one
             old._out = setTimeout(function () { hideLayer(old); }, FADE_MS + 50);
@@ -245,11 +291,38 @@
     }
 
     var backdropToken = 0;
-    function setBackdrop(app) {
+    function setBackdrop(app, force) {
+        /* Nothing changes the backdrop under the Control Center, a drawer,
+           search or Settings: the picture stays still while they are up. */
+        if (!force && overlayOpen()) return;
+        /* A picture still being prepared for the app we just left must not land
+           now. Its fallback fires half a second later and paints the old show
+           over the new one - the flash that goes new, previous, new. */
+        /* Only the app in focus owns the backdrop. A catalogue for the app we
+           just left answers later, and showing its picture here put the previous
+           show back over the new one: the flash that goes new, previous, new. */
+        if (!force && apps.length && apps[nav.index] && apps[nav.index] !== app) return;
+        backdropToken++;
+        var pick = backdropPick(app);
+        if (pick && pick.url) { setPoster(app, pick, force); return; }
+        if (bgActive.dataset.poster) bgActive._stale = true;      // removed once it has faded out
+        stopRotate();
         var image = artOf(app);
         wantBlur(image && (image === app.bg ? app.bgBlur || app.bg : image), app, image && (image === app.bg ? app.bgBlur || null : image));
         var token = ++backdropToken;
-        if (apps.indexOf(app) < DOCK_SIZE) { showLayer(layerFor(app), app); return; }
+        if (APL.glass && APL.glass.refresh) APL.glass.refresh();
+        if (apps.indexOf(app) < DOCK_SIZE) {
+            /* The picture is decoded before its layer is shown. A cover
+               background resolves its percentages against the loaded image, so a
+               layer shown first paints at the top of the box and snaps to centre
+               when the file lands - the picture that "loads from the top" the
+               first time an app is visited. */
+            whenDecoded(image, function () {
+                if (token !== backdropToken) return;
+                showLayer(layerFor(app), app);
+            });
+            return;
+        }
         if (bgActive.dataset.app === app.id) return;
         whenDecoded(image, function () {
             if (token !== backdropToken) return;          // another app was selected in the meantime
@@ -258,6 +331,80 @@
             next.style.background = backdropFor(app);
             if (!image && !plain(app)) next.appendChild(brandCard(app));
             showLayer(next, app);
+        });
+    }
+
+    /* 10 s on the same app: the next title it carries takes over, like the Top
+       Shelf's own rotation. Only apps with a catalogue of their own advance
+       (app-art.js says no otherwise), so a channel never slides on to a rival. */
+    var ROTATE_MS = 10000, rotTimer = null, rotN = 0;
+    function stopRotate() { clearTimeout(rotTimer); rotTimer = null; }
+    /* The backdrop is left alone while something is over it: the Control Center,
+       a drawer, search, Settings, profiles. */
+    function overlayOpen() {
+        return /(^| )has-(cc|sources|search|settings|profiles|wdg)( |$)/.test(document.body.className);
+    }
+    function startRotate(app) {
+        stopRotate();
+        if (!APL.appArt || !APL.appArt.next) return;
+        rotTimer = setTimeout(function () {
+            rotTimer = null;
+            if (apps[nav.index] !== app || mode === "grid" || overlayOpen()) { startRotate(app); return; }
+            var pick = null;
+            try { pick = APL.appArt.next(app, ++rotN); } catch (e) {}
+            if (pick && pick.url) { setPoster(app, pick); return; }
+            startRotate(app);                    // nothing else to show: keep the timer alive
+        }, ROTATE_MS);
+    }
+
+    /* A poster, in the dock and in the grid alike. A fresh layer each time: the picture
+       changes with the title, so there is nothing to keep per app. The one before it is
+       marked stale and goes once the crossfade is over. */
+    function setPoster(app, pick, force) {
+        /* A late swap (a bake finishing after the focus moved on, the focus
+           coming back from an overlay) must not repaint the picture while the
+           Control Center or a drawer is over it. */
+        if (!force && overlayOpen()) return;
+        var token = ++backdropToken;
+        /* The picture AND the glass over it change together: the image is decoded
+           and the pane baked before either is shown, so the dock, the pill and the
+           Control Center cross at the same moment as the backdrop. */
+        var apply = function () {
+            if (token !== backdropToken) return;
+            if (bgActive.dataset.poster && bgActive.dataset.poster !== pick.url) bgActive._stale = true;
+            wantBlur(pick.url, app, pick.url);
+            var next;
+            if (apps.indexOf(app) < DOCK_SIZE) {
+                next = document.createElement("div");
+                next.className = "bg";
+                dom.bgA.parentNode.insertBefore(next, dom.bgA);
+            } else {
+                next = (bgActive === dom.bgA) ? dom.bgB : dom.bgA;
+                next.innerHTML = "";
+            }
+            next.dataset.app = app.id;
+            next.dataset.poster = pick.url;
+            next.style.background = "#000 center / cover no-repeat url('" + pick.url + "')";
+            showLayer(next, app);
+            /* The picture is on screen: the glass must re-read the scene now.
+               Painting alone kept the pane baked for the app's own artwork when
+               the poster had not been baked yet, so the dock and every Control
+               Center tile carried that blurred app backdrop instead of the
+               picture behind them - worst on a first scroll through the apps. */
+            if (APL.glass && APL.glass.refresh) APL.glass.refresh();
+            if (APL.glass && APL.glass.paint) APL.glass.paint();
+            /* The next title's pane is made while this one is on screen, so the
+               ten-second change lands on a slice that is already rendered. */
+            if (APL.glass && APL.glass.prefetch) {
+                var coming = null;
+                try { coming = APL.appArt.next(app, rotN + 1); } catch (e) {}
+                if (coming && coming.url) APL.glass.prefetch(coming.url);
+            }
+            posterInfo(pick);
+            startRotate(app);
+        };
+        whenDecoded(pick.url, function () {
+            if (APL.glass && APL.glass.prepare) APL.glass.prepare(pick.url, apply); else apply();
         });
     }
 
@@ -427,11 +574,11 @@
 
     /* Title and rating of the Top Shelf film or series (videos and games have none). */
     function shelfInfo(item) {
-        var has = !!(item && item.type);
+        var has = !!(item && (item.type || item.poster));
         dom.shelfInfo.classList.toggle("is-visible", has);
         if (!has) return;
         dom.shelfTitle.textContent = item.title;
-        dom.shelfMeta.textContent = APL.live.metaOf(item);
+        dom.shelfMeta.textContent = item.meta !== undefined ? item.meta : APL.live.metaOf(item);
         openHint();
     }
 
@@ -468,9 +615,12 @@
         }, 650);
     }
 
-    var bgTimer = null;
+    var bgTimer = null, lastFocus = 0;
     function onFocus(i, el) {
+        lastFocus = i;
+        rotN = 0;
         var app = apps[i], inDock = el.dataset.row === "0", fromGrid = mode === "grid";
+        if (!inDock) stopRotate();
         if (mode !== "full") setMode(inDock ? "shelf" : "grid");
         else layout();
         if (APL.widgets) APL.widgets.show(inDock ? app : null, fromGrid);
@@ -745,6 +895,31 @@
             .catch(function () { toast(APL.t("Vetro is not responding")); });
     }
 
+    /* The catalogue is in flight while the dock is already up: the poster of the app in
+       focus replaces its artwork as soon as it lands, and turning the setting off puts
+       the artwork back without a restart. */
+    function startBackdrops() {
+        if (!APL.appArt || !APL.appArt.start) return;
+        /* One poster per app, or the storefront's Top Shelf row: they would be
+           fighting over the same backdrop, so turning the backdrops on turns
+           What's Popular off (Settings › Appearance › Top Shelf). */
+        function onlyOne() {
+            if (APL.sys.pref("cleanFrameBackdrops") === false) return;
+            if (APL.sys.pref("liveShelf")) APL.sys.setPref("liveShelf", false);
+        }
+        onlyOne();
+        APL.appArt.start(function () {
+            var app = apps[nav.index];
+            if (app && mode !== "grid") setBackdrop(app);
+        });
+        APL.sys.onPref("cleanFrameBackdrops", function (v) {
+            if (v) onlyOne();
+            dropLayers();
+            var app = apps[lastFocus];
+            if (app && mode !== "grid") setBackdrop(app, true);   // the user asked for it
+        });
+    }
+
     function boot() {
         cacheDom();
         dom.hint.querySelector(".hint__text").textContent = APL.t("Press ▲ for full screen");   // index.html only has the English text
@@ -767,6 +942,7 @@
             setTimeout(function () { if (APL.autoArt) APL.autoArt.run(allApps, render); }, 3500);
             showCcHint();
             render();
+            startBackdrops();
             if (APL.overlay) APL.overlay.start();
             slowKeyRepeat(8);
             setTimeout(function () { bootCleanup(8); }, 25000);
